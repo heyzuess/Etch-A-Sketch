@@ -1,3 +1,44 @@
 body {
     background-color: black;
+    color: white;
+
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+}
+
+#grid {
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.grid-col {
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+.grid-tile {
+    border: 1px solid black;
+    background-color: white;
+}
+
+header {
+    padding: 16px;
+}
+
+footer {
+    padding: 32px;
 }
