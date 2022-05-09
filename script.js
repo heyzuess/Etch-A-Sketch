@@ -49,6 +49,8 @@ class Grid {
 
         window.addEventListener('mousedown', ev => this.paint = true);
         window.addEventListener('mouseup', ev => this.paint = false);
+        window.addEventListener('touchstart', ev => this.paint = true);
+        window.addEventListener('touchend', ev => this.paint = false);
     }
 
     forEachTile (callback) {
