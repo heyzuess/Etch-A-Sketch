@@ -63,6 +63,12 @@ class Grid {
         if (!this.paint) return;
         ev.target.style.backgroundColor = 'blue';
     }
+
+    actualSize() {
+        let tileActualSize = this.columns[0].tiles[0].actualSize();
+        return new Size(this.size.width * tileActualSize.width,
+                        this.size.height * tileActualSize.height);
+    }
 }
 
 class Column {
@@ -90,6 +96,42 @@ class Tile {
 
     clear() {
         this.element.remove();
+    }
+
+    actualSize () {
+        let borderSize = this.borderSize();
+        let width = (this.size.width * 2) + borderSize.width;
+        let height = (this.size.height * 2) + borderSize.height;
+        return new Size(width, height);
+    }
+
+    borderSize () {
+        let style = element => window.getComputedStyle(element);
+        let borderLeftWidth = style(this.element).borderLeftWidth.replace("px", "");
+        let borderRightWidth = style(this.element).borderRightWidth.replace("px", "");
+        let borderTopWidth = style(this.element).borderTopWidth.replace("px", "");
+        let borderBottomWidth = style(this.element).borderBottomWidth.replace("px", "");
+
+        let borderSizeWidth = (borderLeftWidth && borderLeftWidth !== "" ?
+                                parseInt(borderLeftWidth) ?? 0
+                                :
+                                0)
+                              +
+                              (borderRightWidth && borderRightWidth !== "" ?
+                                parseInt(borderRightWidth) ?? 0
+                                :
+                                0);
+        let borderSizeHeight = (borderTopWidth && borderTopWidth !== "" ?
+                                 parseInt(borderTopWidth) ?? 0
+                                 :
+                                 0)
+                               +
+                               (borderBottomWidth && borderBottomWidth !== "" ?
+                                 parseInt(borderBottomWidth) ?? 0
+                                 :
+                                 0);
+        
+        return new Size(borderSizeWidth, borderSizeHeight);
     }
 }
 
