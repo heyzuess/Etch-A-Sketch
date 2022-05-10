@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="style.css" rel="stylesheet">
+    <link href="modal.css" rel="stylesheet">
     <title>Etch-A-Sketch</title>
 </head>
 <body>
@@ -14,9 +15,47 @@
             <h1>Etch-A-Sketch</h1>
         </header>
         <div id="content">
-            <div id="grid"></div>
+            <div>
+                <div>
+                    <button id="settingsButton" class="panelButton">Settings</button>
+                    <button id="clearButton" class="panelButton">Clear</button>
+                </div>
+                <div id="grid"></div>
+            </div>
         </div>
         <footer>Copyright© 2022 Jesse Iberri</footer>
+
+        <div id="modalContainer" class="modal">
+            <div class="modal-content">
+                <span id="exitSettings" class="close">&times;</span>
+                
+                <div id="settingsForm">
+                    <h2>Settings</h2>
+                    <div id="formContainer">
+                        <div class="formContent">
+                            <label for="gridWidth">Grid Width:</label>
+                            <input id="gridWidth" type="number">
+                        </div>
+                        <div class="formContent">
+                            <label for="gridHeight">Grid Height:</label>
+                            <input id="gridHeight" type="number">
+                        </div>
+                        <div class="formContent">
+                            <label for="tileWidth">Tile Width:</label>
+                            <input id="tileWidth" type="number">
+                        </div>
+                        <div class="formContent">
+                            <label for="tileHeight">Tile Height:</label>
+                            <input id="tileHeight" type="number">
+                        </div>
+                    </div>
+                    <div id="formButtons">
+                        <button id="saveChanges">Save</button>
+                        <button id="discardChanges">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js" type="text/javascript"></script>

@@ -26,6 +26,10 @@ class Grid {
         this.forEachTile(tile => tile.clear());
     }
 
+    clearDrawing () {
+        this.forEachTile(tile => tile.element.style.backgroundColor = 'white');
+    }
+
     buildGrid () {
         for (let i = 0; i < this.size.width; i++) {
             let col = new Column();
@@ -34,10 +38,6 @@ class Grid {
                 let tile = new Tile(new Point(i, j), this.tileSize);
                 tile.element.classList.add(this.class);
                 tile.element.addEventListener('mouseover', (ev) => this.onTileHover(ev));
-        
-                //test
-                //tile.element.innerHTML = `Col: ${i}, Row: ${j}`;
-                //tile.element.style.color = 'black';
 
                 col.element.append(tile.element);
                 col.tiles.push(tile);
@@ -91,7 +91,7 @@ class Tile {
 
         let widthStyle = `${this.size.width}px`;
         let heightStyle = `${this.size.height}px`;
-        this.element.style.padding = `${widthStyle} ${heightStyle} ${widthStyle} ${heightStyle}`;
+        this.element.style.padding = `${heightStyle} ${widthStyle} ${heightStyle} ${widthStyle}`;
     }
 
     clear() {
@@ -135,6 +135,112 @@ class Tile {
     }
 }
 
+class Settings {
+    constructor (grid, elements) {
+        this.grid = grid;
+        this.buffers = {
+            'gridWidth': 0,
+            'gridHeight': 0,
+            'tileWidth': 0,
+            'tileHeight': 0
+        };
+        this.elements = elements;
+        this.getBuffer();
+    }
+
+    getBuffer () {
+        this.buffers.gridWidth = this.grid.size.width;
+        this.buffers.gridHeight = this.grid.size.height;
+        this.buffers.tileWidth = this.grid.tileSize.width;
+        this.buffers.tileHeight = this.grid.tileSize.height;
+
+        for (let i in this.buffers) {
+            this.elements[i].value = this.buffers[i];
+        }
+    }
+
+    hasChanges () {
+        for (let i in this.buffers) {
+            if (this.elements[i] && this.buffers[i])
+            {
+                let value = parseInt(this.elements[i].value);
+                if (value !== this.buffers[i]) return i;
+            }
+        }
+        return null;
+    }
+
+    discardChanges() {
+        for (let i in this.buffers) {
+            if (this.elements[i] && this.buffers[i])
+                this.elements[i].value = this.buffers[i];
+        }
+    }
+
+    applyChanges () {
+        let temp = null;
+        let gridSize = new Size(this.elements.gridWidth.value,
+                                this.elements.gridHeight.value);
+        let tileSize = new Size(this.elements.tileWidth.value,
+                                this.elements.tileHeight.value);
+        
+        temp = new Grid(gridSize, tileSize);
+        if (!temp) return false;
+
+        this.grid.clearAll();
+        this.grid = temp;
+        this.grid.buildGrid();
+
+        this.getBuffer();
+        return true;
+    }
+}
+
+const modalContainer = document.getElementById("modalContainer");
+
+document.getElementById('exitSettings').addEventListener('click', () => hideSettings());
+
+document.getElementById('settingsButton').addEventListener('click', () => {
+    modalContainer.style.display = 'block';
+});
+
+document.getElementById('clearButton').addEventListener('click', () => settingsBuffer.grid.clearDrawing());
+
+window.addEventListener('click', (ev) => {
+    if (ev.target === modalContainer) hideSettings();
+});
+
+document.getElementById('saveChanges').addEventListener('click', () => {
+    if (settingsBuffer.hasChanges() && !confirmSettings()) return;
+
+    settingsBuffer.applyChanges();
+    hideSettings();
+});
+
+document.getElementById('discardChanges').addEventListener('click', () => {
+    if (settingsBuffer.hasChanges() && confirm('Are you sure you want to discard changes?'))
+        settingsBuffer.discardChanges();
+    hideSettings();
+});
+
 let grid = new Grid(new Size(20, 20), new Size(10, 10));
 grid.clearAll();
 grid.buildGrid();
+
+let settingsElements = {
+    'gridWidth': document.getElementById('gridWidth'),
+    'gridHeight': document.getElementById('gridHeight'),
+    'tileWidth': document.getElementById('tileWidth'),
+    'tileHeight': document.getElementById('tileHeight')
+};
+
+let settingsBuffer = new Settings(grid, settingsElements);
+
+function hideSettings () {
+    settingsBuffer.discardChanges();
+    modalContainer.style.display = 'none';
+}
+
+function confirmSettings () {
+    return confirm('Changes will reset grid, do you want to continue?');
+}

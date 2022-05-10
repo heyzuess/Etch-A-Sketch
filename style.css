@@ -23,9 +23,96 @@ header, footer {
     justify-content: center;
 }
 
+.panelButton {
+    border: none;
+    box-shadow: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: -4px;
+}
+
+#settingsButton {
+    background-color: black;
+    color: white;
+}
+
+#clearButton {
+    background-color: rgb(18, 17, 17);
+    color: white;
+}
+
+#settingsForm {
+    display: flex;
+
+    flex-direction: column;
+    flex: 1;
+
+    width: 100%;
+    align-items: center;
+}
+
+#settingsForm h2 {
+    margin-top: 0;
+}
+
+#formContainer {
+    padding: 16px 0;
+    background-color: rgb(39, 38, 38);
+    border-radius: 5px;
+}
+
+.formContent {
+    display: flex;
+    flex: 1;
+
+    justify-content: space-between;
+
+    padding: 4px 0;
+}
+
+.formContent label {
+    text-align: right;
+    width: 50%;
+}
+
+.formContent input {
+    text-align: right;
+
+    margin: 0 10%;
+    width: 30%;
+}
+
+#formButtons {
+    display: flex;
+
+    justify-content: flex-end;
+    gap: 8px;
+
+    padding-top: 16px;
+}
+
+#formButtons button {
+    border: none;
+    box-shadow: none;
+    background-color: black;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: rgb(2, 62, 141) !important;
+}
+
 #content {
     display: flex;
     flex: 1;
+
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
     background-color: rgb(27, 26, 26);
 }
@@ -36,6 +123,8 @@ header, footer {
 
     display: flex;
     flex: 1;
+    
+    background-color: rgb(20, 19, 19);
 }
 
 .grid-col {
