@@ -48,6 +48,8 @@ header, footer {
     flex-direction: column;
     flex: 1;
 
+    gap: 16px;
+
     width: 100%;
     align-items: center;
 }
@@ -81,6 +83,17 @@ header, footer {
 
     margin: 0 10%;
     width: 30%;
+}
+
+#summary {
+    display: flex;
+    gap: 16px;
+    color: grey;
+    background-color: black;
+    padding: 20px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
 }
 
 #formButtons {

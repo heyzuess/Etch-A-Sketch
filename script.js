@@ -69,6 +69,15 @@ class Grid {
         return new Size(this.size.width * tileActualSize.width,
                         this.size.height * tileActualSize.height);
     }
+
+    // Assuming the .grid-tile css still has a 1px solid border
+    // This is needed because the tile will not be created yet
+    // when determining new gride size
+    static guessSize(gridSize, tileSize, borderSize) {
+        let tileGuessSize = Tile.guessSize(tileSize, borderSize);
+        return new Size(gridSize.width * tileGuessSize.width,
+                        gridSize.height * tileGuessSize.height);
+    }
 }
 
 class Column {
@@ -103,6 +112,14 @@ class Tile {
         let width = (this.size.width * 2) + borderSize.width;
         let height = (this.size.height * 2) + borderSize.height;
         return new Size(width, height);
+    }
+
+    // Assuming the .grid-tile css still has a 1px solid border
+    // This is needed because the tile will not be created yet
+    // when determining new gride size
+    static guessSize(tileSize, borderSize) {
+        return new Size((tileSize.width * 2) + (borderSize.width * 2),
+                        (tileSize.height * 2) + (borderSize.height * 2));
     }
 
     borderSize () {
@@ -184,6 +201,13 @@ class Settings {
         let tileSize = new Size(this.elements.tileWidth.value,
                                 this.elements.tileHeight.value);
         
+        let tempSize = Grid.guessSize(gridSize, tileSize, new Size(1, 1));
+
+        if (tempSize.width > 960 || tempSize.height > 960) {
+            window.alert(`Grid Size ${tempSize.width} x ${tempSize.height} can not exceed 960 x 960.\nPlease try a different size.`);
+            return false;
+        }
+
         temp = new Grid(gridSize, tileSize);
         if (!temp) return false;
 
@@ -200,9 +224,7 @@ const modalContainer = document.getElementById("modalContainer");
 
 document.getElementById('exitSettings').addEventListener('click', () => hideSettings());
 
-document.getElementById('settingsButton').addEventListener('click', () => {
-    modalContainer.style.display = 'block';
-});
+document.getElementById('settingsButton').addEventListener('click', () => showSettings());
 
 document.getElementById('clearButton').addEventListener('click', () => settingsBuffer.grid.clearDrawing());
 
@@ -213,8 +235,7 @@ window.addEventListener('click', (ev) => {
 document.getElementById('saveChanges').addEventListener('click', () => {
     if (settingsBuffer.hasChanges() && !confirmSettings()) return;
 
-    settingsBuffer.applyChanges();
-    hideSettings();
+    if (settingsBuffer.applyChanges()) hideSettings();
 });
 
 document.getElementById('discardChanges').addEventListener('click', () => {
@@ -222,6 +243,12 @@ document.getElementById('discardChanges').addEventListener('click', () => {
         settingsBuffer.discardChanges();
     hideSettings();
 });
+
+let elements = document.getElementsByClassName('formContent');
+
+for (let element of elements) {
+    element.addEventListener('input', () => updateSummary());
+}
 
 let grid = new Grid(new Size(20, 20), new Size(10, 10));
 grid.clearAll();
@@ -236,6 +263,11 @@ let settingsElements = {
 
 let settingsBuffer = new Settings(grid, settingsElements);
 
+function showSettings () {
+    updateSummary();
+    modalContainer.style.display = 'block';
+}
+
 function hideSettings () {
     settingsBuffer.discardChanges();
     modalContainer.style.display = 'none';
@@ -243,4 +275,32 @@ function hideSettings () {
 
 function confirmSettings () {
     return confirm('Changes will reset grid, do you want to continue?');
+}
+
+function updateSummary () {
+    let gridSize = new Size(0, 0);
+    let tileSize = new Size(0, 0);
+
+    let elements = document.getElementsByClassName('formField');
+
+    for (let element of elements) {
+        switch (element.id) {
+            case 'gridWidth':
+                gridSize.width = element.value;
+                break;
+            case 'gridHeight':
+                gridSize.height = element.value;
+                break;
+            case 'tileWidth':
+                tileSize.width = element.value;
+                break;
+            case 'tileHeight':
+                tileSize.height = element.value;
+                break;
+        }
+    }
+
+    let summary = document.getElementById('estimateSize');
+    let tempSize = Grid.guessSize(gridSize, tileSize, new Size(1, 1));
+    summary.innerHTML = `${tempSize.width} x ${tempSize.height}`;
 }
