@@ -21,13 +21,14 @@ class Point {
 }
 
 class Grid {
-    constructor(gridSize, tileSize) {
+    constructor(gridSize, tileSize, maxSize) {
         this.size = gridSize;
         this.tileSize = tileSize;
         this.element = document.getElementById('grid');
         this.class = 'grid-obj';
         this.columns = [];
         this.paint = false;
+        this.maxSize = maxSize;
     }
 
     clearAll () {
@@ -173,13 +174,6 @@ class Settings {
                                 this.elements.gridHeight.value);
         let tileSize = new Size(this.elements.tileWidth.value,
                                 this.elements.tileHeight.value);
-        
-        let tempSize = Grid.estimateSize(gridSize, tileSize);
-
-        if (tempSize.width > 960 || tempSize.height > 960) {
-            window.alert(`Grid Size ${tempSize.width} x ${tempSize.height} can not exceed 960 x 960.\nPlease try a different size.`);
-            return false;
-        }
 
         temp = new Grid(gridSize, tileSize);
         if (!temp) return false;
@@ -208,6 +202,32 @@ window.addEventListener('click', (ev) => {
 document.getElementById('saveChanges').addEventListener('click', () => {
     if (settingsBuffer.hasChanges() && !confirmSettings()) return;
 
+    // Do form validation here
+    let gridSize = new Size(settingsBuffer.elements.gridWidth.value,
+                            settingsBuffer.elements.gridHeight.value);
+    let tileSize = new Size(settingsBuffer.elements.tileWidth.value,
+                            settingsBuffer.elements.tileHeight.value);
+    let maxSize = settingsBuffer.grid.maxSize;
+
+    /* Dont allow grid size over 100 x 100 */
+    if (gridSize.width > 100 || gridSize.height > 100) {
+        window.alert(`Grid Size ${gridSize.width} x ${gridSize.height} can not ` +
+                     `exceed 100 x 100.\nPlease try a different size.`);
+        return;
+    }
+    /* End */
+
+    /* Check grid size */ 
+    let tempSize = Grid.estimateSize(gridSize, tileSize);
+
+    if (tempSize.width > maxSize.width || tempSize.height > maxSize.height) {
+        window.alert(`Total Size ${tempSize.width} x ${tempSize.height} can not ` + 
+                     `exceed ${maxSize.width} x ${maxSize.height}.` +
+                     `\nPlease try a different size.`);
+        return;
+    }
+    /* End - Check grid size */
+
     if (settingsBuffer.applyChanges()) hideSettings();
 });
 
@@ -223,7 +243,8 @@ for (let element of elements) {
     element.addEventListener('input', () => updateSummary());
 }
 
-let grid = new Grid(new Size(20, 20), new Size(10, 10));
+let maxSize = new Size(960, 800);
+let grid = new Grid(new Size(20, 20), new Size(10, 10), maxSize);
 grid.clearAll();
 grid.buildGrid();
 
