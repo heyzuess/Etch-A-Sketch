@@ -274,7 +274,7 @@ for (let element of elements) {
     element.addEventListener('input', () => updateSummary());
 }
 
-let maxSize = new Size(800, 800);
+let maxSize = new Size(600, 600);
 let grid = new Grid(new Size(20, 20), new Size(10, 10), maxSize);
 grid.stretch = true;
 
