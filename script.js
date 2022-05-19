@@ -29,14 +29,21 @@ class Grid {
         this.columns = [];
         this.paint = false;
         this.maxSize = maxSize;
+        this.stretch = false;
     }
 
     clearAll () {
         this.forEachTile(tile => tile.clear());
+        this.columns = [];
     }
 
     clearDrawing () {
         this.forEachTile(tile => tile.element.style.backgroundColor = 'white');
+    }
+
+    build () {
+        this.clearAll();
+        this.stretch ? this.stretchToMax() : this.buildGrid();
     }
 
     buildGrid () {
@@ -46,6 +53,7 @@ class Grid {
             for (let j = 0; j < this.size.height; j++) {
                 let tile = new Tile(new Point(i, j), this.tileSize);
                 tile.element.classList.add(this.class);
+                tile.element.addEventListener('click', (ev) => this.onTileHover(ev));
                 tile.element.addEventListener('mouseover', (ev) => this.onTileHover(ev));
 
                 col.element.append(tile.element);
@@ -90,6 +98,17 @@ class Grid {
         return new Size(gridSize.width * tileSize.width,
                         gridSize.height * tileSize.height);
     }
+
+    stretchToMax () {
+        let tileSize = new Size(this.tileSize.width, this.tileSize.height);
+        
+        tileSize.width = (this.maxSize.width / this.size.width).toFixed(0);
+        tileSize.height = (this.maxSize.height / this.size.height).toFixed(0);
+
+        this.tileSize = tileSize;
+
+        this.buildGrid();
+    }
 }
 
 class Column {
@@ -133,7 +152,8 @@ class Settings {
             'gridWidth': 0,
             'gridHeight': 0,
             'tileWidth': 0,
-            'tileHeight': 0
+            'tileHeight': 0,
+            'stretch': false
         };
         this.elements = elements;
         this.getBuffer();
@@ -144,17 +164,28 @@ class Settings {
         this.buffers.gridHeight = this.grid.size.height;
         this.buffers.tileWidth = this.grid.tileSize.width;
         this.buffers.tileHeight = this.grid.tileSize.height;
+        this.buffers.stretch = this.grid.stretch;
 
         for (let i in this.buffers) {
             this.elements[i].value = this.buffers[i];
+
+            if (this.elements[i].type === 'checkbox')
+            this.elements[i].checked = this.buffers[i];
         }
     }
 
     hasChanges () {
         for (let i in this.buffers) {
-            if (this.elements[i] && this.buffers[i])
+            if (this.elements[i])
             {
-                let value = parseInt(this.elements[i].value);
+                let value = null;
+                if (this.elements[i].type === 'number' && this.buffers[i]) {
+                    value = parseInt(this.elements[i].value);
+                } else
+                if (this.elements[i].type === 'checkbox') {
+                    value = this.elements[i].checked;
+                }
+
                 if (value !== this.buffers[i]) return i;
             }
         }
@@ -175,13 +206,11 @@ class Settings {
         let tileSize = new Size(this.elements.tileWidth.value,
                                 this.elements.tileHeight.value);
 
-        temp = new Grid(gridSize, tileSize);
-        if (!temp) return false;
+        this.grid.size = gridSize;
+        this.grid.tileSize = tileSize;
+        this.grid.stretch = this.elements.stretch.checked;
 
-        this.grid.clearAll();
-        this.grid = temp;
-        this.grid.buildGrid();
-
+        this.grid.build();
         this.getBuffer();
         return true;
     }
@@ -193,14 +222,15 @@ document.getElementById('exitSettings').addEventListener('click', () => hideSett
 
 document.getElementById('settingsButton').addEventListener('click', () => showSettings());
 
-document.getElementById('clearButton').addEventListener('click', () => settingsBuffer.grid.clearDrawing());
+document.getElementById('clearButton').addEventListener('click', () => grid.clearDrawing());
 
 window.addEventListener('click', (ev) => {
     if (ev.target === modalContainer) hideSettings();
 });
 
 document.getElementById('saveChanges').addEventListener('click', () => {
-    if (settingsBuffer.hasChanges() && !confirmSettings()) return;
+    if (!settingsBuffer.hasChanges()) return;
+    if (!confirmSettings()) return;
 
     // Do form validation here
     let gridSize = new Size(settingsBuffer.elements.gridWidth.value,
@@ -208,6 +238,7 @@ document.getElementById('saveChanges').addEventListener('click', () => {
     let tileSize = new Size(settingsBuffer.elements.tileWidth.value,
                             settingsBuffer.elements.tileHeight.value);
     let maxSize = settingsBuffer.grid.maxSize;
+    let stretch = settingsBuffer.elements.stretch.checked;
 
     /* Dont allow grid size over 100 x 100 */
     if (gridSize.width > 100 || gridSize.height > 100) {
@@ -220,7 +251,7 @@ document.getElementById('saveChanges').addEventListener('click', () => {
     /* Check grid size */ 
     let tempSize = Grid.estimateSize(gridSize, tileSize);
 
-    if (tempSize.width > maxSize.width || tempSize.height > maxSize.height) {
+    if ((tempSize.width > maxSize.width || tempSize.height > maxSize.height) && !stretch) {
         window.alert(`Total Size ${tempSize.width} x ${tempSize.height} can not ` + 
                      `exceed ${maxSize.width} x ${maxSize.height}.` +
                      `\nPlease try a different size.`);
@@ -243,16 +274,18 @@ for (let element of elements) {
     element.addEventListener('input', () => updateSummary());
 }
 
-let maxSize = new Size(960, 800);
+let maxSize = new Size(800, 800);
 let grid = new Grid(new Size(20, 20), new Size(10, 10), maxSize);
-grid.clearAll();
-grid.buildGrid();
+grid.stretch = true;
+
+grid.build();
 
 let settingsElements = {
     'gridWidth': document.getElementById('gridWidth'),
     'gridHeight': document.getElementById('gridHeight'),
     'tileWidth': document.getElementById('tileWidth'),
-    'tileHeight': document.getElementById('tileHeight')
+    'tileHeight': document.getElementById('tileHeight'),
+    'stretch': document.getElementById('stretch')
 };
 
 let settingsBuffer = new Settings(grid, settingsElements);
@@ -298,7 +331,7 @@ function updateSummary () {
     let summary = document.getElementById('summary');
     let tempSize = Grid.estimateSize(gridSize, tileSize);
     estimate.innerHTML = `${tempSize.width} x ${tempSize.height}`;
-    let overMax = tempSize.width > 960 || tempSize.height > 960;
+    let overMax = tempSize.width > grid.maxSize.width || tempSize.height > grid.maxSize.height;
     summary.style.backgroundColor =  overMax ? "red" : "black";
     summary.style.color = overMax ? "white": "grey";
 }
