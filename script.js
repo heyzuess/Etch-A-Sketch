@@ -3,12 +3,20 @@ class Size {
         this.width = width;
         this.height = height;
     }
+
+    toString() {
+        return `{"width": ${this.width}, "height": ${this.height}}`;
+    }
 }
 
 class Point {
     constructor(col, row) {
         this.col = col;
         this.row = row;
+    }
+
+    toString() {
+        return `{"col": ${this.col}, "row": ${this.row}}`;
     }
 }
 
@@ -59,24 +67,27 @@ class Grid {
         });
     }
 
+    tile (pos) {
+        if (pos.col > this.width || pos.col < 0 ||
+            pos.row > this.height || pos.row < 0) return null;
+        return this.columns[pos.col].tiles[pos.row];
+    }
+
     onTileHover (ev) {
         if (!this.paint) return;
         ev.target.style.backgroundColor = 'blue';
     }
 
     actualSize() {
-        let tileActualSize = this.columns[0].tiles[0].actualSize();
-        return new Size(this.size.width * tileActualSize.width,
-                        this.size.height * tileActualSize.height);
+        let tileSize = this.columns[0].tiles[0].size;
+        return new Size(this.size.width * tileSize.width,
+                        this.size.height * tileSize.height);
     }
 
-    // Assuming the .grid-tile css still has a 1px solid border
-    // This is needed because the tile will not be created yet
-    // when determining new gride size
-    static guessSize(gridSize, tileSize, borderSize) {
-        let tileGuessSize = Tile.guessSize(tileSize, borderSize);
-        return new Size(gridSize.width * tileGuessSize.width,
-                        gridSize.height * tileGuessSize.height);
+    // Tile will not be created yet when determining new grid size
+    static estimateSize(gridSize, tileSize) {
+        return new Size(gridSize.width * tileSize.width,
+                        gridSize.height * tileSize.height);
     }
 }
 
@@ -97,58 +108,20 @@ class Tile {
         this.size = tileSize;
         this.element = document.createElement('div');
         this.element.classList.add('grid-tile');
+        this.borderSize = new Size(1, 1);
 
-        let widthStyle = `${this.size.width}px`;
-        let heightStyle = `${this.size.height}px`;
-        this.element.style.padding = `${heightStyle} ${widthStyle} ${heightStyle} ${widthStyle}`;
+        let leftWidthStyle = `${(this.size.width / 2) - this.borderSize.width}px`;
+        let topHeightStyle = `${(this.size.height / 2) - this.borderSize.height}px`;
+
+        let ifSizeIsOdd = (length) => length % 2 > 0 ? (length / 2) - 1 : length / 2;
+        let rightWidthStyle = `${ifSizeIsOdd(this.size.width) - this.borderSize.width}px`;
+        let bottomHeightStyle = `${ifSizeIsOdd(this.size.height) - this.borderSize.height}px`;
+
+        this.element.style.padding = `${topHeightStyle} ${leftWidthStyle} ${bottomHeightStyle} ${rightWidthStyle}`;
     }
 
     clear() {
         this.element.remove();
-    }
-
-    actualSize () {
-        let borderSize = this.borderSize();
-        let width = (this.size.width * 2) + borderSize.width;
-        let height = (this.size.height * 2) + borderSize.height;
-        return new Size(width, height);
-    }
-
-    // Assuming the .grid-tile css still has a 1px solid border
-    // This is needed because the tile will not be created yet
-    // when determining new gride size
-    static guessSize(tileSize, borderSize) {
-        return new Size((tileSize.width * 2) + (borderSize.width * 2),
-                        (tileSize.height * 2) + (borderSize.height * 2));
-    }
-
-    borderSize () {
-        let style = element => window.getComputedStyle(element);
-        let borderLeftWidth = style(this.element).borderLeftWidth.replace("px", "");
-        let borderRightWidth = style(this.element).borderRightWidth.replace("px", "");
-        let borderTopWidth = style(this.element).borderTopWidth.replace("px", "");
-        let borderBottomWidth = style(this.element).borderBottomWidth.replace("px", "");
-
-        let borderSizeWidth = (borderLeftWidth && borderLeftWidth !== "" ?
-                                parseInt(borderLeftWidth) ?? 0
-                                :
-                                0)
-                              +
-                              (borderRightWidth && borderRightWidth !== "" ?
-                                parseInt(borderRightWidth) ?? 0
-                                :
-                                0);
-        let borderSizeHeight = (borderTopWidth && borderTopWidth !== "" ?
-                                 parseInt(borderTopWidth) ?? 0
-                                 :
-                                 0)
-                               +
-                               (borderBottomWidth && borderBottomWidth !== "" ?
-                                 parseInt(borderBottomWidth) ?? 0
-                                 :
-                                 0);
-        
-        return new Size(borderSizeWidth, borderSizeHeight);
     }
 }
 
@@ -201,7 +174,7 @@ class Settings {
         let tileSize = new Size(this.elements.tileWidth.value,
                                 this.elements.tileHeight.value);
         
-        let tempSize = Grid.guessSize(gridSize, tileSize, new Size(1, 1));
+        let tempSize = Grid.estimateSize(gridSize, tileSize);
 
         if (tempSize.width > 960 || tempSize.height > 960) {
             window.alert(`Grid Size ${tempSize.width} x ${tempSize.height} can not exceed 960 x 960.\nPlease try a different size.`);
@@ -302,7 +275,7 @@ function updateSummary () {
 
     let estimate = document.getElementById('estimateSize');
     let summary = document.getElementById('summary');
-    let tempSize = Grid.guessSize(gridSize, tileSize, new Size(1, 1));
+    let tempSize = Grid.estimateSize(gridSize, tileSize);
     estimate.innerHTML = `${tempSize.width} x ${tempSize.height}`;
     let overMax = tempSize.width > 960 || tempSize.height > 960;
     summary.style.backgroundColor =  overMax ? "red" : "black";
