@@ -300,7 +300,11 @@ function updateSummary () {
         }
     }
 
-    let summary = document.getElementById('estimateSize');
+    let estimate = document.getElementById('estimateSize');
+    let summary = document.getElementById('summary');
     let tempSize = Grid.guessSize(gridSize, tileSize, new Size(1, 1));
-    summary.innerHTML = `${tempSize.width} x ${tempSize.height}`;
+    estimate.innerHTML = `${tempSize.width} x ${tempSize.height}`;
+    let overMax = tempSize.width > 960 || tempSize.height > 960;
+    summary.style.backgroundColor =  overMax ? "red" : "black";
+    summary.style.color = overMax ? "white": "grey";
 }
