@@ -24,6 +24,7 @@ class Grid {
     constructor(gridSize, tileSize, maxSize) {
         this.size = gridSize;
         this.tileSize = tileSize;
+        this.tileColor = "#a8acb5";
         this.element = document.getElementById('grid');
         this.class = 'grid-obj';
         this.columns = [];
@@ -38,7 +39,7 @@ class Grid {
     }
 
     clearDrawing () {
-        this.forEachTile(tile => tile.element.style.backgroundColor = 'white');
+        this.forEachTile(tile => tile.element.style.backgroundColor = this.tileColor);
     }
 
     build () {
@@ -84,7 +85,7 @@ class Grid {
 
     onTileHover (ev) {
         if (!this.paint) return;
-        ev.target.style.backgroundColor = 'blue';
+        ev.target.style.backgroundColor = 'black';
     }
 
     actualSize() {
