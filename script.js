@@ -7,6 +7,40 @@ class Size {
     toString() {
         return `{"width": ${this.width}, "height": ${this.height}}`;
     }
+
+    static subtract (size1, size2) {
+        return new Size(size1.width - size2.width,
+                        size1.height - size2.height);
+    }
+
+    static add (size1, size2) {
+        return new Size(size1.width + size2.width,
+                        size1.height + size2.height);
+    }
+
+    static multiply (size1, size2) {
+        return new Size(size1.width * size2.width,
+                        size1.height * size2.height);
+    }
+
+    static divide (size1, size2) {
+        return new Size(size1.width / size2.width,
+                        size1.height / size2.height);
+    }
+
+    static incriment (size) {
+        size.width++;
+        size.height++;
+    }
+
+    static decrement (size) {
+        size.width--;
+        size.height--;
+    }
+
+    static abs (size) {
+        return new Size(Math.abs(size.width), Math.abs(size.height));
+    }
 }
 
 class Point {
@@ -109,6 +143,48 @@ class Grid {
         this.tileSize = tileSize;
 
         this.buildGrid();
+    }
+
+    stretchToClient () {
+        this.stretch = true;
+
+        let tempSize = this.stretchToClientSize();
+        this.maxSize = tempSize;
+        
+        this.build();
+    }
+    
+    static clientSize () {
+        return new Size(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
+                        Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    }
+
+    stretchToClientSize () {
+        let contentContainer = document.getElementById('content');
+        let contentStyle = window.getComputedStyle(contentContainer);
+        let contentWidth = (parseInt(contentStyle.paddingLeft.replace("px", "")) ?? 0)
+                           +
+                           (parseInt(contentStyle.paddingRight.replace("px", "")) ?? 0);
+        let contentHeight = (parseInt(contentStyle.paddingTop.replace("px", "")) ?? 0)
+                            +
+                            (parseInt(contentStyle.paddingBottom.replace("px", "")) ?? 0);
+        
+        let contentPadding = new Size(contentWidth, contentHeight);
+
+        let mainContainer = document.getElementById('main');
+        let mainSize = new Size(mainContainer.offsetWidth, mainContainer.offsetHeight);
+        
+        let elementSize = new Size(this.element.offsetWidth, this.element.offsetHeight);
+
+        let tempSize = Size.subtract(mainSize, elementSize);;
+
+        tempSize = Size.add(Size.divide(elementSize, new Size(2, 2)), 
+                            tempSize);
+
+        contentPadding = Size.multiply(contentPadding, new Size(2, 2));
+        tempSize = Size.subtract(tempSize, contentPadding);
+
+        return tempSize;
     }
 }
 
@@ -276,10 +352,11 @@ for (let element of elements) {
 }
 
 let maxSize = new Size(600, 600);
-let grid = new Grid(new Size(20, 20), new Size(10, 10), maxSize);
+let grid = new Grid(new Size(50, 50), new Size(10, 10), maxSize);
 grid.stretch = true;
 
 grid.build();
+grid.stretchToClient();
 
 let settingsElements = {
     'gridWidth': document.getElementById('gridWidth'),
